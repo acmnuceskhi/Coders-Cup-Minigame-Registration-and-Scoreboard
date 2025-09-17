@@ -4,7 +4,8 @@ class Game {
   String id;
   String name;
   int limit;
+  bool codeBased = false;
   List<FormField> formFields = [];
 
-  Game({required this.id, required this.name, required this.limit});
+  Game({required this.id, required this.name, required this.limit, this.codeBased = false});
 }

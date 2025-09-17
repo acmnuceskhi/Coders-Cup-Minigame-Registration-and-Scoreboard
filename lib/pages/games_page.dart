@@ -107,7 +107,8 @@ class _GamesPageState extends State<GamesPage> {
                 // ignore parsing errors, leave empty
               }
 
-              final game = Game(id: id, name: name, limit: limit);
+              final codeBased = (data['codeBased'] as bool?) ?? false;
+              final game = Game(id: id, name: name, limit: limit, codeBased: codeBased);
               game.formFields = formFields;
 
               return Card(

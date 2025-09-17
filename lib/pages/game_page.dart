@@ -5,6 +5,7 @@ import 'package:coders_cup_minigame_frontend/pages/scoreboard_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class GamePage extends StatefulWidget {
   final Game game;
@@ -21,6 +22,10 @@ class _GamePageState extends State<GamePage> {
   bool _signedIn = false;
   String? _userName;
   String? _userEmail;
+  bool _formDisabled =
+      false; // disable form when user already registered (for code-based games)
+  bool _hasCode = false;
+  String? _userCode;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -35,6 +40,43 @@ class _GamePageState extends State<GamePage> {
     for (final f in widget.game.formFields) {
       _controllers[f.label] = TextEditingController();
     }
+  }
+
+  Future<void> _maybeLoadExistingResponse() async {
+    if (_userEmail == null) return;
+    try {
+      final q = await FirebaseFirestore.instance
+          .collection('games')
+          .doc(widget.game.id)
+          .collection('responses')
+          .where('userEmail', isEqualTo: _userEmail)
+          .limit(1)
+          .get();
+      if (q.docs.isNotEmpty) {
+        final d = q.docs.first.data();
+        if (d.containsKey('code')) {
+          setState(() {
+            _userCode = d['code']?.toString();
+            _hasCode = _userCode != null;
+            _formDisabled = _hasCode;
+          });
+        }
+      }
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  String _genShortCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final now = DateTime.now().microsecondsSinceEpoch;
+    var v = now;
+    final sb = StringBuffer();
+    for (var i = 0; i < 6; i++) {
+      sb.write(chars[v % chars.length]);
+      v = (v ~/ chars.length) ^ (v << 5);
+    }
+    return sb.toString();
   }
 
   // Scoreboard moved to a separate page: use ScoreboardPage
@@ -70,7 +112,9 @@ class _GamePageState extends State<GamePage> {
           await _googleSignIn.signOut();
         } catch (_) {}
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to obtain email from Google account.')),
+          const SnackBar(
+            content: Text('Failed to obtain email from Google account.'),
+          ),
         );
         return;
       }
@@ -85,7 +129,9 @@ class _GamePageState extends State<GamePage> {
           await _googleSignIn.signOut();
         } catch (_) {}
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please sign in with your nu.edu.pk email.')),
+          const SnackBar(
+            content: Text('Please sign in with your nu.edu.pk email.'),
+          ),
         );
         return;
       }
@@ -95,10 +141,14 @@ class _GamePageState extends State<GamePage> {
         _userName = user?.displayName ?? googleUser.displayName ?? '';
         _userEmail = email;
       });
+      // After sign-in, if this game is code-based check for existing response
+      if (widget.game.codeBased) {
+        await _maybeLoadExistingResponse();
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google sign-in failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google sign-in failed: $e')));
     }
   }
 
@@ -118,6 +168,9 @@ class _GamePageState extends State<GamePage> {
       _signedIn = false;
       _userName = null;
       _userEmail = null;
+      _formDisabled = false;
+      _hasCode = false;
+      _userCode = null;
     });
     ScaffoldMessenger.of(
       context,
@@ -198,6 +251,58 @@ class _GamePageState extends State<GamePage> {
                             onPressed: _signedIn ? _signOut : _signInWithGoogle,
                           ),
                           const SizedBox(height: 8),
+                          if (_hasCode)
+                            Column(
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                    horizontal: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[400],
+                                    borderRadius: BorderRadius.circular(90),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'You are registered for this game. Your code: ${_userCode ?? ''}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.copy, size: 18),
+                                        onPressed: () {
+                                          if (_userCode != null) {
+                                            Clipboard.setData(
+                                              ClipboardData(text: _userCode!),
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Code copied to clipboard',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           if (!_signedIn)
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,6 +344,7 @@ class _GamePageState extends State<GamePage> {
                               child: TextFormField(
                                 controller: controller,
                                 readOnly: true,
+                                enabled: !_formDisabled,
                                 decoration: InputDecoration(
                                   labelText: f.label,
                                   border: const OutlineInputBorder(),
@@ -288,6 +394,7 @@ class _GamePageState extends State<GamePage> {
                                 helperText: f.required ? 'required' : null,
                                 helperStyle: TextStyle(color: Colors.red[700]),
                               ),
+                              enabled: !_formDisabled,
                               validator: (v) {
                                 if (f.required &&
                                     (v == null || v.trim().isEmpty))
@@ -308,7 +415,7 @@ class _GamePageState extends State<GamePage> {
                         }).toList(),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: (!_signedIn)
+                          onPressed: (!_signedIn || _formDisabled)
                               ? null
                               : () async {
                                   final ok =
@@ -391,7 +498,8 @@ class _GamePageState extends State<GamePage> {
           builder: (context) => AlertDialog(
             title: const Text('Already registered'),
             content: Text(
-                'This email ($_userEmail) has already been used to register for this game. You cannot register again.'),
+              'This email ($_userEmail) has already been used to register for this game. You cannot register again.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -417,7 +525,8 @@ class _GamePageState extends State<GamePage> {
             builder: (context) => AlertDialog(
               title: const Text('Already registered'),
               content: Text(
-                  'This email ($_userEmail) has already been used to register for this game. You cannot register again.'),
+                'This email ($_userEmail) has already been used to register for this game. You cannot register again.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -442,51 +551,104 @@ class _GamePageState extends State<GamePage> {
 
     try {
       // Create the response document inside a transaction after verifying the game exists.
-      await FirebaseFirestore.instance.runTransaction((tx) async {
-        final gameSnap = await tx.get(gameRef);
-        if (!gameSnap.exists) throw Exception('Game not found');
+      // For code-based games we try up to maxAttempts to generate a non-colliding code.
+      String? allocatedCode;
+      final payloadBase = <String, dynamic>{
+        'userName': _userName,
+        'userEmail': _userEmail,
+        'submittedAt': FieldValue.serverTimestamp(),
+        'answers': {},
+      };
 
-        // Prepare response payload
-        final payload = <String, dynamic>{
-          'userName': _userName,
-          'userEmail': _userEmail,
-          'submittedAt': FieldValue.serverTimestamp(),
-          'answers': {},
-        };
-
-        for (final f in widget.game.formFields) {
-          final raw = _controllers[f.label]?.text ?? '';
-          final type = f.type.toLowerCase();
-          dynamic value = raw;
-          if (type == 'number' || type == 'numeric' || type == 'int') {
-            value = num.tryParse(raw.trim()) ?? raw;
-          } else if (type == 'date') {
-            try {
-              final dt = DateTime.parse(raw);
-              value = Timestamp.fromDate(dt);
-            } catch (_) {
-              value = raw;
-            }
+      for (final f in widget.game.formFields) {
+        final raw = _controllers[f.label]?.text ?? '';
+        final type = f.type.toLowerCase();
+        dynamic value = raw;
+        if (type == 'number' || type == 'numeric' || type == 'int') {
+          value = num.tryParse(raw.trim()) ?? raw;
+        } else if (type == 'date') {
+          try {
+            final dt = DateTime.parse(raw);
+            value = Timestamp.fromDate(dt);
+          } catch (_) {
+            value = raw;
           }
-          // Save each answer as an object with type metadata so backend can know the datatype
-          payload['answers'][f.label] = {
-            'value': value,
-            'type': f.type,
-            'required': f.required,
-          };
         }
+        payloadBase['answers'][f.label] = {
+          'value': value,
+          'type': f.type,
+          'required': f.required,
+        };
+      }
 
-  // Create a new response doc with auto id
-  final newRef = responsesRef.doc();
-  tx.set(newRef, payload);
+      if (widget.game.codeBased) {
+        const maxAttempts = 3;
+        for (var attempt = 0; attempt < maxAttempts; attempt++) {
+          final candidate = _genShortCode();
+          try {
+            final result = await FirebaseFirestore.instance
+                .runTransaction<String>((tx) async {
+                  final gameSnap = await tx.get(gameRef);
+                  if (!gameSnap.exists) throw Exception('Game not found');
 
-  // Do not maintain responsesCount here; counts are derived by querying the
-  // responses subcollection when needed.
-      });
+                  final candidateRef = responsesRef.doc(candidate);
+                  final candSnap = await tx.get(candidateRef);
+                  if (candSnap.exists) throw StateError('collision');
+
+                  final payload = Map.of(payloadBase);
+                  payload['code'] = candidate;
+                  tx.set(candidateRef, payload);
+                  return candidate;
+                });
+
+            allocatedCode = result;
+            break; // success
+          } on StateError catch (e) {
+            if (e.message == 'collision') {
+              // try next candidate
+              continue;
+            }
+            rethrow;
+          }
+        }
+        if (allocatedCode == null)
+          throw StateError('Could not allocate a unique code');
+      } else {
+        // non-code-based: single transaction to write the response with auto-id
+        await FirebaseFirestore.instance.runTransaction((tx) async {
+          final gameSnap = await tx.get(gameRef);
+          if (!gameSnap.exists) throw Exception('Game not found');
+          final newRef = responsesRef.doc();
+          final payload = Map.of(payloadBase);
+          tx.set(newRef, payload);
+        });
+      }
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Registered successfully.')));
+
+      if (widget.game.codeBased) {
+        setState(() {
+          _userCode = allocatedCode;
+          _hasCode = true;
+          _formDisabled = true;
+        });
+
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Your code'),
+            content: Text('Your registration code is: $allocatedCode'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
     } on StateError catch (e) {
       if (e.message == 'limit-reached') {
         ScaffoldMessenger.of(context).showSnackBar(
