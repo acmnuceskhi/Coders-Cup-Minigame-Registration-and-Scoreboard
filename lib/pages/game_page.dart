@@ -29,9 +29,7 @@ class _GamePageState extends State<GamePage> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  // NOTE: Google Sign-In integration was temporarily disabled because of
-  // package API mismatches. Use a simple dialog-based sign-in (name + NU email)
-  // as a temporary replacement so the app compiles and registration can proceed.
+  
   bool _isRegistering = false;
 
   @override
@@ -44,7 +42,29 @@ class _GamePageState extends State<GamePage> {
 
   Future<void> _maybeLoadExistingResponse() async {
     if (_userEmail == null) return;
+    // Show a small loading dialog while we query Firestore so the user knows
+    // something is happening (important for code-based games where the form
+    // may be disabled if a response already exists).
+    if (!mounted) return;
     try {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Dialog(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(width: 24, height: 24, child: CircularProgressIndicator()),
+                SizedBox(width: 12),
+                Expanded(child: Text('Checking registration...')),
+              ],
+            ),
+          ),
+        ),
+      );
+
       final q = await FirebaseFirestore.instance
           .collection('games')
           .doc(widget.game.id)
@@ -52,6 +72,7 @@ class _GamePageState extends State<GamePage> {
           .where('userEmail', isEqualTo: _userEmail)
           .limit(1)
           .get();
+
       if (q.docs.isNotEmpty) {
         final d = q.docs.first.data();
         if (d.containsKey('code')) {
@@ -62,8 +83,23 @@ class _GamePageState extends State<GamePage> {
           });
         }
       }
-    } catch (_) {
-      // ignore
+    } catch (e) {
+      // keep a minimal visible error for debugging
+      // don't interrupt the flow; just report via snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to check existing registration: $e')),
+        );
+      }
+    } finally {
+      // Dismiss the loading dialog if still present.
+      if (mounted) {
+        try {
+          Navigator.of(context, rootNavigator: true).pop();
+        } catch (_) {
+          // ignore if dialog already closed
+        }
+      }
     }
   }
 
