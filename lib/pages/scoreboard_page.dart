@@ -103,19 +103,6 @@ class ScoreboardPage extends StatelessWidget {
                   return sb.compareTo(sa);
                 });
 
-                if (entries.isNotEmpty) {
-                  if (entries.length >= 100) {
-                    entries = entries.take(100).toList();
-                  } else {
-                    entries = List.generate(
-                      100,
-                      (i) => Map<String, dynamic>.from(
-                        entries[i % entries.length],
-                      ),
-                    );
-                  }
-                }
-
                 // Always render the themed Stack (background, overlays, corner images).
                 // If there are no entries, show a placeholder inside the list area so
                 // the background and images remain visible.
@@ -210,7 +197,7 @@ class ScoreboardPage extends StatelessWidget {
                                 ),
                                 SizedBox(
                                   height:
-                                      MediaQuery.of(context).size.height * 0.75,
+                                      MediaQuery.of(context).size.height * 0.7,
                                   child: entries.isEmpty
                                       ? Center(
                                           child: Text(
