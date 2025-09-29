@@ -58,7 +58,7 @@ class _GamesPageState extends State<GamesPage> {
               final id = doc.id;
               final name = (data['name'] as String?) ?? 'Unnamed Game';
 
-              int limit = 0;
+              int? limit;
               try {
                 final rawLimit = data['limit'];
                 if (rawLimit is int) {
@@ -66,10 +66,10 @@ class _GamesPageState extends State<GamesPage> {
                 } else if (rawLimit is double) {
                   limit = rawLimit.toInt();
                 } else if (rawLimit is String) {
-                  limit = int.tryParse(rawLimit) ?? 0;
+                  limit = int.tryParse(rawLimit);
                 }
               } catch (_) {
-                limit = 0;
+                limit = null;
               }
 
               // Parse formFields if present
@@ -108,7 +108,16 @@ class _GamesPageState extends State<GamesPage> {
               }
 
               final codeBased = (data['codeBased'] as bool?) ?? false;
-              final game = Game(id: id, name: name, limit: limit, codeBased: codeBased);
+              final game = Game(
+                id: id,
+                name: name,
+                limit: limit,
+                codeBased: codeBased,
+                backgroundImage: (data['backgroundImage'] as String?)?.trim(),
+                bottomLeftImage: (data['bottomLeftImage'] as String?)?.trim(),
+                bottomRightImage: (data['bottomRightImage'] as String?)?.trim(),
+                primaryColor: (data['primaryColor'] as String?)?.trim(),
+              );
               game.formFields = formFields;
 
               return Card(
@@ -117,9 +126,17 @@ class _GamesPageState extends State<GamesPage> {
                   vertical: 6.0,
                 ),
                 child: ListTile(
+                  leading:
+                      game.primaryColor != null && game.primaryColor!.isNotEmpty
+                      ? CircleAvatar(
+                          backgroundColor: _parseColorFromHex(
+                            game.primaryColor!,
+                          ),
+                        )
+                      : null,
                   title: Text(game.name),
                   subtitle: Text(
-                    'Limit: ${game.limit} — ${game.formFields.length} fields',
+                    'Limit: ${game.limit?.toString() ?? 'No limit'} — ${game.formFields.length} fields',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
@@ -134,5 +151,17 @@ class _GamesPageState extends State<GamesPage> {
         },
       ),
     );
+  }
+
+  Color _parseColorFromHex(String hex) {
+    var h = hex.replaceAll('#', '').trim();
+    if (h.length == 6) h = 'FF$h';
+    if (h.length != 8) return Colors.transparent;
+    try {
+      final v = int.parse(h, radix: 16);
+      return Color(v);
+    } catch (_) {
+      return Colors.transparent;
+    }
   }
 }
