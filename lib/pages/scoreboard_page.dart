@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coders_cup_minigame_frontend/utils.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class ScoreboardPage extends StatelessWidget {
@@ -82,7 +83,7 @@ class ScoreboardPage extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
 
                 final docs = snap.data!.docs;
-                final entries = docs.map((d) {
+                var entries = docs.map((d) {
                   final data = d.data();
                   final name =
                       (data['userName'] ?? data['userEmail'] ?? 'Unknown')
@@ -101,6 +102,19 @@ class ScoreboardPage extends StatelessWidget {
                   if (sb == null) return -1;
                   return sb.compareTo(sa);
                 });
+
+                if (entries.isNotEmpty) {
+                  if (entries.length >= 100) {
+                    entries = entries.take(100).toList();
+                  } else {
+                    entries = List.generate(
+                      100,
+                      (i) => Map<String, dynamic>.from(
+                        entries[i % entries.length],
+                      ),
+                    );
+                  }
+                }
 
                 // Always render the themed Stack (background, overlays, corner images).
                 // If there are no entries, show a placeholder inside the list area so
@@ -150,77 +164,104 @@ class ScoreboardPage extends StatelessWidget {
                             ? MediaQuery.of(context).size.width * 0.2
                             : MediaQuery.of(context).size.width * 0.05,
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            alignment: Alignment.center,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(90),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.06),
+                              ),
+                            ),
+                            padding: const EdgeInsets.all(12),
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  gameName,
-                                  style: TextStyle(
-                                    fontSize:
-                                        MediaQuery.of(context).size.height *
-                                        0.07,
+                                Container(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        gameName,
+                                        style: TextStyle(
+                                          fontSize:
+                                              MediaQuery.of(
+                                                context,
+                                              ).size.height *
+                                              0.07,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      Text(
+                                        'Leaderboard',
+                                        style: TextStyle(
+                                          fontSize:
+                                              MediaQuery.of(
+                                                context,
+                                              ).size.height *
+                                              0.02,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  textAlign: TextAlign.center,
                                 ),
-                                Text(
-                                  'Leaderboard',
-                                  style: TextStyle(
-                                    fontSize:
-                                        MediaQuery.of(context).size.height *
-                                        0.02,
-                                  ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.75,
+                                  child: entries.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            'No one played yet.',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.white.withOpacity(
+                                                0.9,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          padding: const EdgeInsets.all(12),
+                                          itemBuilder: (context, i) {
+                                            final e = entries[i];
+                                            final rank = i + 1;
+                                            final name = e['name'] as String;
+                                            final score = e['score'] as int?;
+                                            return Padding(
+                                              padding: const EdgeInsets.all(
+                                                8.0,
+                                              ),
+                                              child: ListTile(
+                                                leading: CircleAvatar(
+                                                  backgroundColor:
+                                                      resolvedPrimary,
+                                                  child: Text(rank.toString()),
+                                                ),
+                                                title: Text(name),
+                                                trailing: Text(
+                                                  score != null
+                                                      ? score.toString()
+                                                      : 'Yet to play',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: score != null
+                                                        ? Colors.white
+                                                        : Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          itemCount: entries.length,
+                                        ),
                                 ),
                               ],
                             ),
                           ),
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.75,
-                            child: entries.isEmpty
-                                ? Center(
-                                    child: Text(
-                                      'No one played yet.',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.white.withOpacity(0.9),
-                                      ),
-                                    ),
-                                  )
-                                : ListView.separated(
-                                    padding: const EdgeInsets.all(12),
-                                    itemBuilder: (context, i) {
-                                      final e = entries[i];
-                                      final rank = i + 1;
-                                      final name = e['name'] as String;
-                                      final score = e['score'] as int?;
-                                      return ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: resolvedPrimary,
-                                          child: Text(rank.toString()),
-                                        ),
-                                        title: Text(name),
-                                        trailing: Text(
-                                          score != null
-                                              ? score.toString()
-                                              : 'Yet to play',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: score != null
-                                                ? Colors.white
-                                                : Colors.grey[600],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    separatorBuilder: (_, __) =>
-                                        const Divider(),
-                                    itemCount: entries.length,
-                                  ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                     if (bottomLeftImage != null && bottomLeftImage.isNotEmpty)

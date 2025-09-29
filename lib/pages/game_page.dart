@@ -568,7 +568,16 @@ class _GamePageState extends State<GamePage> {
                                             strokeWidth: 2,
                                           ),
                                         )
-                                      : const Text('Register'),
+                                      : Text(
+                                          'Register',
+                                          style: TextStyle(
+                                            color: _formDisabled
+                                                ? Colors.black
+                                                : Colors.black.withValues(
+                                                    alpha: 0.5,
+                                                  ),
+                                          ),
+                                        ),
                                 ),
                                 const SizedBox(height: 8),
                               ],
