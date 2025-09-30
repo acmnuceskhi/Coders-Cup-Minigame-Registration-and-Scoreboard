@@ -89,14 +89,14 @@ class ScoreboardPage extends StatelessWidget {
                       (data['userName'] ?? data['userEmail'] ?? 'Unknown')
                           .toString();
                   final score = data.containsKey('score')
-                      ? (data['score'] as num?)?.toInt()
+                      ? (data['score'] as num?)?.toDouble()
                       : null;
                   return {'id': d.id, 'name': name, 'score': score};
                 }).toList();
 
                 entries.sort((a, b) {
-                  final sa = a['score'] as int?;
-                  final sb = b['score'] as int?;
+                  final sa = a['score'] as double?;
+                  final sb = b['score'] as double?;
                   if (sa == null && sb == null) return 0;
                   if (sa == null) return 1;
                   if (sb == null) return -1;
@@ -210,13 +210,16 @@ class ScoreboardPage extends StatelessWidget {
                                             ),
                                           ),
                                         )
-                                      : ListView.builder(
+                                      : ListView.separated(
                                           padding: const EdgeInsets.all(12),
                                           itemBuilder: (context, i) {
                                             final e = entries[i];
                                             final rank = i + 1;
                                             final name = e['name'] as String;
-                                            final score = e['score'] as int?;
+                                            final score = e['score'] == null
+                                                ? null
+                                                : (e['score'] as double)
+                                                      .toStringAsFixed(3);
                                             return Padding(
                                               padding: const EdgeInsets.all(
                                                 8.0,
@@ -236,13 +239,35 @@ class ScoreboardPage extends StatelessWidget {
                                                     fontSize: 16,
                                                     color: score != null
                                                         ? Colors.white
-                                                        : Colors.grey[600],
+                                                        : Colors.white
+                                                              .withValues(
+                                                                alpha: 0.3,
+                                                              ),
                                                   ),
                                                 ),
                                               ),
                                             );
                                           },
                                           itemCount: entries.length,
+                                          separatorBuilder:
+                                              (
+                                                BuildContext context,
+                                                int index,
+                                              ) {
+                                                return Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal:
+                                                        MediaQuery.of(
+                                                          context,
+                                                        ).size.width *
+                                                        0.025,
+                                                  ),
+                                                  child: Divider(
+                                                    color: Colors.white
+                                                        .withOpacity(0.5),
+                                                  ),
+                                                );
+                                              },
                                         ),
                                 ),
                               ],

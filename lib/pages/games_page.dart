@@ -133,16 +133,17 @@ class _GamesPageState extends State<GamesPage> {
               game.formFields = formFields;
 
               return _HoverGameCard(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => GamePage(game: game)),
-                ),
+                onTap: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => GamePage(game: game))),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // image area
                     Expanded(
                       flex: 6,
-                      child: game.backgroundImage != null &&
+                      child:
+                          game.backgroundImage != null &&
                               game.backgroundImage!.isNotEmpty
                           ? Image.network(
                               game.backgroundImage!,
@@ -158,7 +159,8 @@ class _GamesPageState extends State<GamesPage> {
                               color: Colors.grey[200],
                               child: Center(
                                 child: CircleAvatar(
-                                  backgroundColor: game.primaryColor != null &&
+                                  backgroundColor:
+                                      game.primaryColor != null &&
                                           game.primaryColor!.isNotEmpty
                                       ? _parseColorFromHex(game.primaryColor!)
                                       : Theme.of(context).colorScheme.primary,
@@ -166,9 +168,7 @@ class _GamesPageState extends State<GamesPage> {
                                     game.name.isNotEmpty
                                         ? game.name[0].toUpperCase()
                                         : '?',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                    ),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                 ),
                               ),
@@ -224,120 +224,120 @@ class _GamesPageState extends State<GamesPage> {
   }
 }
 
-  class _HoverGameCard extends StatefulWidget {
-    final Widget child;
-    final VoidCallback? onTap;
+class _HoverGameCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
 
-    const _HoverGameCard({required this.child, this.onTap});
+  const _HoverGameCard({required this.child, this.onTap});
 
-    @override
-    State<_HoverGameCard> createState() => _HoverGameCardState();
+  @override
+  State<_HoverGameCard> createState() => _HoverGameCardState();
+}
+
+class _HoverGameCardState extends State<_HoverGameCard>
+    with SingleTickerProviderStateMixin {
+  bool _hovering = false;
+  late final AnimationController _shimmerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _shimmerController.addStatusListener((s) {
+      if (s == AnimationStatus.completed) _shimmerController.repeat();
+    });
   }
 
-  class _HoverGameCardState extends State<_HoverGameCard>
-      with SingleTickerProviderStateMixin {
-    bool _hovering = false;
-    late final AnimationController _shimmerController;
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    super.dispose();
+  }
 
-    @override
-    void initState() {
-      super.initState();
-      _shimmerController = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1200),
-      );
-      _shimmerController.addStatusListener((s) {
-        if (s == AnimationStatus.completed) _shimmerController.repeat();
-      });
-    }
+  void _onEnter(PointerEnterEvent e) {
+    setState(() => _hovering = true);
+    _shimmerController.forward(from: 0.0);
+  }
 
-    @override
-    void dispose() {
-      _shimmerController.dispose();
-      super.dispose();
-    }
+  void _onExit(PointerExitEvent e) {
+    setState(() => _hovering = false);
+    _shimmerController.stop();
+  }
 
-    void _onEnter(PointerEnterEvent e) {
-      setState(() => _hovering = true);
-      _shimmerController.forward(from: 0.0);
-    }
+  @override
+  Widget build(BuildContext context) {
+    // animated elevation / scale
+    final scale = _hovering ? 1.025 : 1.0;
+    final elevation = _hovering ? 14.0 : 4.0;
 
-    void _onExit(PointerExitEvent e) {
-      setState(() => _hovering = false);
-      _shimmerController.stop();
-    }
-
-    @override
-    Widget build(BuildContext context) {
-      // animated elevation / scale
-      final scale = _hovering ? 1.025 : 1.0;
-      final elevation = _hovering ? 14.0 : 4.0;
-
-      return MouseRegion(
-        onEnter: _onEnter,
-        onExit: _onExit,
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            transform: Matrix4.identity()..scale(scale, scale),
-            curve: Curves.easeOutCubic,
-            child: Material(
-              elevation: elevation,
-              borderRadius: BorderRadius.circular(12),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // the card content passed in
-                  widget.child,
-                  // subtle dark overlay to lift content when hovered
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: _hovering ? 0.06 : 0.0,
-                    child: Container(color: Colors.black),
-                  ),
-                  // shimmering highlight
-                  if (_hovering)
-                    Positioned.fill(
-                      child: AnimatedBuilder(
-                        animation: _shimmerController,
-                        builder: (context, _) {
-                          final t = _shimmerController.value;
-                          final width = MediaQuery.of(context).size.width;
-                          // shimmer moves left-to-right across the card
-                          final left = (-0.6 + 1.6 * t) * width;
-                          return IgnorePointer(
-                            child: Transform.translate(
-                              offset: Offset(left, 0),
-                              child: Container(
-                                width: width * 0.6,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white.withOpacity(0.0),
-                                      Colors.white.withOpacity(0.18),
-                                      Colors.white.withOpacity(0.0),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    stops: const [0.0, 0.5, 1.0],
-                                  ),
-                                  // slight rotation to create diagonal shine
-                                  backgroundBlendMode: BlendMode.screen,
+    return MouseRegion(
+      onEnter: _onEnter,
+      onExit: _onExit,
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          transform: Matrix4.identity()..scale(scale, scale),
+          curve: Curves.easeOutCubic,
+          child: Material(
+            elevation: elevation,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // the card content passed in
+                widget.child,
+                // subtle dark overlay to lift content when hovered
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _hovering ? 0.06 : 0.0,
+                  child: Container(color: Colors.black),
+                ),
+                // shimmering highlight
+                if (_hovering)
+                  Positioned.fill(
+                    child: AnimatedBuilder(
+                      animation: _shimmerController,
+                      builder: (context, _) {
+                        final t = _shimmerController.value;
+                        final width = MediaQuery.of(context).size.width;
+                        // shimmer moves left-to-right across the card
+                        final left = (-0.6 + 1.6 * t) * width;
+                        return IgnorePointer(
+                          child: Transform.translate(
+                            offset: Offset(left, 0),
+                            child: Container(
+                              width: width * 0.6,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.white.withOpacity(0.0),
+                                    Colors.white.withOpacity(0.18),
+                                    Colors.white.withOpacity(0.0),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  stops: const [0.0, 0.5, 1.0],
                                 ),
+                                // slight rotation to create diagonal shine
+                                backgroundBlendMode: BlendMode.screen,
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
         ),
-      );
-    }
+      ),
+    );
   }
+}
