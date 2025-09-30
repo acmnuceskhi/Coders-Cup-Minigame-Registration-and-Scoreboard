@@ -26,7 +26,7 @@ class _GamesPageState extends State<GamesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Games')),
+      appBar: AppBar(title: const Text('ACM Activities')),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _gamesRef.snapshots(),
         builder: (context, snapshot) {

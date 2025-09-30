@@ -566,6 +566,7 @@ class _GamePageState extends State<GamePage> {
                                           height: 16,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
+                                            color: Colors.black,
                                           ),
                                         )
                                       : Text(

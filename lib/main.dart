@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Coder\'s Cup Minigames',
+      title: 'ACM Activities',
       theme: ThemeData(
         colorScheme: ColorScheme.dark(
           primary: Colors.red[700]!,
