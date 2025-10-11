@@ -39,8 +39,19 @@ class _GamesPageState extends State<GamesPage> {
           }
 
           final docs = snapshot.data?.docs ?? [];
-          if (docs.isEmpty) {
-            return const Center(child: Text('No games found.'));
+          // filter to active games only (treat missing 'active' as true)
+          final visibleDocs = docs.where((d) {
+            try {
+              final a = d.data()['active'];
+              if (a == null) return true;
+              if (a is bool) return a;
+              return a.toString().toLowerCase() == 'true';
+            } catch (_) {
+              return true;
+            }
+          }).toList();
+          if (visibleDocs.isEmpty) {
+            return const Center(child: Text('No activities found.'));
           }
 
           final width = MediaQuery.of(context).size.width;
@@ -61,9 +72,9 @@ class _GamesPageState extends State<GamesPage> {
               crossAxisSpacing: 12,
               childAspectRatio: 3 / 4,
             ),
-            itemCount: docs.length,
+            itemCount: visibleDocs.length,
             itemBuilder: (context, index) {
-              final doc = docs[index];
+              final doc = visibleDocs[index];
               final data = doc.data();
 
               // Parse fields defensively

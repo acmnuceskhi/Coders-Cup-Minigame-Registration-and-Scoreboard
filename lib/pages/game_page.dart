@@ -739,7 +739,7 @@ class _GamePageState extends State<GamePage> {
           builder: (context) => AlertDialog(
             title: const Text('Already registered'),
             content: Text(
-              'This email ($_userEmail) has already been used to register for this game. You cannot register again.',
+              'This email ($_userEmail) has already been used to register for this activity. You cannot register again.',
             ),
             actions: [
               TextButton(
@@ -766,7 +766,7 @@ class _GamePageState extends State<GamePage> {
             builder: (context) => AlertDialog(
               title: const Text('Already registered'),
               content: Text(
-                'This email ($_userEmail) has already been used to register for this game. You cannot register again.',
+                'This email ($_userEmail) has already been used to register for this activity. You cannot register again.',
               ),
               actions: [
                 TextButton(
