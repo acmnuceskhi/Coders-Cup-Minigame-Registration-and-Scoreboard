@@ -10,6 +10,7 @@ class Game {
   String? bottomLeftImage;
   String? bottomRightImage;
   String? primaryColor; // hex string like #FFAABBCC
+  bool scoreboardDisabled = false;
 
   Game({
     required this.id,
@@ -20,5 +21,6 @@ class Game {
     this.bottomLeftImage,
     this.bottomRightImage,
     this.primaryColor,
+  this.scoreboardDisabled = false,
   });
 }

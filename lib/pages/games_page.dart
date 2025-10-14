@@ -140,6 +140,8 @@ class _GamesPageState extends State<GamesPage> {
                 bottomLeftImage: (data['bottomLeftImage'] as String?)?.trim(),
                 bottomRightImage: (data['bottomRightImage'] as String?)?.trim(),
                 primaryColor: (data['primaryColor'] as String?)?.trim(),
+                scoreboardDisabled:
+                    (data['scoreboardDisabled'] as bool?) ?? false,
               );
               game.formFields = formFields;
 
@@ -201,13 +203,6 @@ class _GamesPageState extends State<GamesPage> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              'Limit of Regs: ${game.limit?.toString() ?? 'No limit'}',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
                           ],
                         ),
                       ),

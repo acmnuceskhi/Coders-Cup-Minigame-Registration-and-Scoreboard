@@ -323,18 +323,19 @@ class _GamePageState extends State<GamePage> {
                         children: [
                           // Registration limits are not enforced client-side anymore.
                           const SizedBox(height: 12),
-                          ElevatedButton.icon(
-                            onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => ScoreboardPage(
-                                  gameId: game.id,
-                                  gameName: game.name,
+                          if (!game.scoreboardDisabled)
+                            ElevatedButton.icon(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => ScoreboardPage(
+                                    gameId: game.id,
+                                    gameName: game.name,
+                                  ),
                                 ),
                               ),
+                              icon: const Icon(Icons.leaderboard),
+                              label: const Text('Show scoreboard'),
                             ),
-                            icon: const Icon(Icons.leaderboard),
-                            label: const Text('Show scoreboard'),
-                          ),
                           const SizedBox(height: 12),
                           Card(
                             child: Padding(
