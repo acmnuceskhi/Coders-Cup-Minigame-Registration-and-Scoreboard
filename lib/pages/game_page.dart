@@ -337,6 +337,23 @@ class _GamePageState extends State<GamePage> {
                               label: const Text('Show scoreboard'),
                             ),
                           const SizedBox(height: 12),
+                          // show instructions if provided
+                          if (game.instructions != null &&
+                              game.instructions!.isNotEmpty)
+                            Column(
+                              children: [
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Text(
+                                      game.instructions!,
+                                      style: TextStyle(color: Colors.grey[800]),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                            ),
                           Card(
                             child: Padding(
                               padding: const EdgeInsets.all(12.0),

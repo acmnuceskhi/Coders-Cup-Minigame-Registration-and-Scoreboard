@@ -134,6 +134,8 @@ class _GamesPageState extends State<GamesPage> {
               final game = Game(
                 id: id,
                 name: name,
+                description: (data['description'] as String?)?.trim(),
+                instructions: (data['instructions'] as String?)?.trim(),
                 limit: limit,
                 codeBased: codeBased,
                 backgroundImage: (data['backgroundImage'] as String?)?.trim(),
@@ -203,6 +205,18 @@ class _GamesPageState extends State<GamesPage> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 6),
+                            if (game.description != null &&
+                                game.description!.isNotEmpty)
+                              Text(
+                                game.description!,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: Colors.grey[700]),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            if (game.description != null &&
+                                game.description!.isNotEmpty)
+                              const SizedBox(height: 6),
                           ],
                         ),
                       ),
