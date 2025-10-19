@@ -138,6 +138,7 @@ class _GamesPageState extends State<GamesPage> {
                 instructions: (data['instructions'] as String?)?.trim(),
                 limit: limit,
                 codeBased: codeBased,
+                allowNonNuIds: (data['allowNonNuIds'] as bool?) ?? false,
                 backgroundImage: (data['backgroundImage'] as String?)?.trim(),
                 bottomLeftImage: (data['bottomLeftImage'] as String?)?.trim(),
                 bottomRightImage: (data['bottomRightImage'] as String?)?.trim(),

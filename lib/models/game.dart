@@ -8,6 +8,7 @@ class Game {
   int? limit; // optional
   bool codeBased = false;
   List<FormField> formFields = [];
+  bool allowNonNuIds = false;
   String? backgroundImage;
   String? bottomLeftImage;
   String? bottomRightImage;
@@ -21,6 +22,7 @@ class Game {
     this.instructions,
     this.limit,
     this.codeBased = false,
+    this.allowNonNuIds = false,
     this.backgroundImage,
     this.bottomLeftImage,
     this.bottomRightImage,

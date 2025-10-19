@@ -160,7 +160,8 @@ class _GamePageState extends State<GamePage> {
       }
       final email = emailRaw.toLowerCase();
 
-      if (!email.endsWith('nu.edu.pk')) {
+      // Enforce NU-only sign-in unless the game explicitly allows non-NU IDs.
+      if (!widget.game.allowNonNuIds && !email.endsWith('nu.edu.pk')) {
         // not allowed domain: sign out and inform user
         try {
           await _auth.signOut();
@@ -449,7 +450,9 @@ class _GamePageState extends State<GamePage> {
                                         ),
                                         const SizedBox(height: 6),
                                         Text(
-                                          'Please sign in using your nu.edu.pk (NU) email account.',
+                                          widget.game.allowNonNuIds
+                                              ? 'Please sign in using your Google account.'
+                                              : 'Please sign in using your nu.edu.pk (NU) email account.',
                                           style: TextStyle(
                                             color: Colors.grey[600],
                                             fontSize: 13,
@@ -729,7 +732,8 @@ class _GamePageState extends State<GamePage> {
       return;
     }
 
-    if (!_hasValidNuEmail(_userEmail)) {
+    // If the game requires NU emails, enforce it at registration time as well.
+    if (!widget.game.allowNonNuIds && !_hasValidNuEmail(_userEmail)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please use your nu.edu.pk email to register.'),
