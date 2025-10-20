@@ -571,7 +571,10 @@ class _GamePageState extends State<GamePage> {
                                       vertical: 16,
                                     ),
                                   ),
-                                  onPressed: (!_signedIn || _formDisabled)
+                                  onPressed:
+                                      (!_signedIn ||
+                                          _formDisabled ||
+                                          !widget.game.registrationsActive)
                                       ? null
                                       : () async {
                                           final ok =

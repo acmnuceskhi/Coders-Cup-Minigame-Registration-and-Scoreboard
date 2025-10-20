@@ -139,6 +139,7 @@ class _GamesPageState extends State<GamesPage> {
                 limit: limit,
                 codeBased: codeBased,
                 allowNonNuIds: (data['allowNonNuIds'] as bool?) ?? false,
+                registrationsActive: (data['registrationsActive'] as bool?) ?? true,
                 backgroundImage: (data['backgroundImage'] as String?)?.trim(),
                 bottomLeftImage: (data['bottomLeftImage'] as String?)?.trim(),
                 bottomRightImage: (data['bottomRightImage'] as String?)?.trim(),
