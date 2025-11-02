@@ -355,115 +355,130 @@ class _GamePageState extends State<GamePage> {
                                 const SizedBox(height: 12),
                               ],
                             ),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    'Sign in with Google',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  ElevatedButton.icon(
-                                    icon: const Icon(Icons.account_circle),
-                                    label: Text(
-                                      _signedIn
-                                          ? 'Signed in as ${_userEmail ?? _userName} (click to sign out)'
-                                          : 'Sign in with Google',
+                          if (game.registrationsActive)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      'Sign in with Google',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
                                     ),
-                                    onPressed: _signedIn
-                                        ? _signOut
-                                        : _signInWithGoogle,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (_hasCode)
-                                    Column(
-                                      children: [
-                                        Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 4,
-                                            horizontal: 12,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.green[400],
-                                            borderRadius: BorderRadius.circular(
-                                              90,
+                                    const SizedBox(height: 8),
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.account_circle),
+                                      label: Text(
+                                        _signedIn
+                                            ? 'Signed in as ${_userEmail ?? _userName} (click to sign out)'
+                                            : 'Sign in with Google',
+                                      ),
+                                      onPressed: _signedIn
+                                          ? _signOut
+                                          : _signInWithGoogle,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (_hasCode)
+                                      Column(
+                                        children: [
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 4,
+                                              horizontal: 12,
                                             ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.check_circle,
-                                                color: Colors.white,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Text(
-                                                  'You are registered for this game. Your code: ${_userCode ?? ''}',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w600,
+                                            decoration: BoxDecoration(
+                                              color: Colors.green[400],
+                                              borderRadius:
+                                                  BorderRadius.circular(90),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.check_circle,
+                                                  color: Colors.white,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    'You are registered for this game. Your code: ${_userCode ?? ''}',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              IconButton(
-                                                icon: const Icon(
-                                                  Icons.copy,
-                                                  size: 18,
-                                                ),
-                                                onPressed: () {
-                                                  if (_userCode != null) {
-                                                    Clipboard.setData(
-                                                      ClipboardData(
-                                                        text: _userCode!,
-                                                      ),
-                                                    );
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'Code copied to clipboard',
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.copy,
+                                                    size: 18,
+                                                  ),
+                                                  onPressed: () {
+                                                    if (_userCode != null) {
+                                                      Clipboard.setData(
+                                                        ClipboardData(
+                                                          text: _userCode!,
                                                         ),
-                                                      ),
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ],
+                                                      );
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                            'Code copied to clipboard',
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  if (!_signedIn)
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Google sign-in is required to register.',
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          widget.game.allowNonNuIds
-                                              ? 'Please sign in using your Google account.'
-                                              : 'Please sign in using your nu.edu.pk (NU) email account.',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 13,
+                                        ],
+                                      ),
+                                    if (!_signedIn)
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Google sign-in is required to register.',
+                                            style: TextStyle(color: Colors.red),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                ],
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            widget.game.allowNonNuIds
+                                                ? 'Please sign in using your Google account.'
+                                                : 'Please sign in using your nu.edu.pk (NU) email account.',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Text(
+                                  'Registrations are not active.',
+                                  style: TextStyle(
+                                    color: Colors.red[700],
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
                           const SizedBox(height: 12),
                           Form(
                             key: _formKey,
@@ -564,46 +579,44 @@ class _GamePageState extends State<GamePage> {
                                   );
                                 }).toList(),
                                 const SizedBox(height: 16),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: resolvedPrimary,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
+                                if (game.registrationsActive)
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: resolvedPrimary,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
                                     ),
+                                    onPressed: (!_signedIn || _formDisabled)
+                                        ? null
+                                        : () async {
+                                            final ok =
+                                                _formKey.currentState
+                                                    ?.validate() ??
+                                                false;
+                                            if (!ok) return;
+                                            await _register();
+                                          },
+                                    child: _isRegistering
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.black,
+                                            ),
+                                          )
+                                        : Text(
+                                            'Register',
+                                            style: TextStyle(
+                                              color: _formDisabled
+                                                  ? Colors.black
+                                                  : Colors.black.withValues(
+                                                      alpha: 0.5,
+                                                    ),
+                                            ),
+                                          ),
                                   ),
-                                  onPressed:
-                                      (!_signedIn ||
-                                          _formDisabled ||
-                                          !widget.game.registrationsActive)
-                                      ? null
-                                      : () async {
-                                          final ok =
-                                              _formKey.currentState
-                                                  ?.validate() ??
-                                              false;
-                                          if (!ok) return;
-                                          await _register();
-                                        },
-                                  child: _isRegistering
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.black,
-                                          ),
-                                        )
-                                      : Text(
-                                          'Register',
-                                          style: TextStyle(
-                                            color: _formDisabled
-                                                ? Colors.black
-                                                : Colors.black.withValues(
-                                                    alpha: 0.5,
-                                                  ),
-                                          ),
-                                        ),
-                                ),
                                 const SizedBox(height: 8),
                               ],
                             ),
