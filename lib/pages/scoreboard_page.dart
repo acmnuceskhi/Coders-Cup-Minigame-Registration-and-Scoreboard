@@ -91,7 +91,13 @@ class ScoreboardPage extends StatelessWidget {
                   final score = data.containsKey('score')
                       ? (data['score'] as num?)?.toDouble()
                       : null;
-                  return {'id': d.id, 'name': name, 'score': score};
+                  final timestamp = data['score_timestamp'] as Timestamp?;
+                  return {
+                    'id': d.id,
+                    'name': name,
+                    'score': score,
+                    'timestamp': timestamp,
+                  };
                 }).toList();
 
                 entries.sort((a, b) {
@@ -100,7 +106,18 @@ class ScoreboardPage extends StatelessWidget {
                   if (sa == null && sb == null) return 0;
                   if (sa == null) return 1;
                   if (sb == null) return -1;
-                  return sb.compareTo(sa);
+
+                  // If scores are equal, sort by timestamp (earlier first)
+                  final scoreComparison = sb.compareTo(sa);
+                  if (scoreComparison == 0) {
+                    final ta = a['timestamp'] as Timestamp?;
+                    final tb = b['timestamp'] as Timestamp?;
+                    if (ta == null && tb == null) return 0;
+                    if (ta == null) return 1;
+                    if (tb == null) return -1;
+                    return ta.compareTo(tb); // Earlier timestamp first
+                  }
+                  return scoreComparison;
                 });
 
                 // Always render the themed Stack (background, overlays, corner images).
