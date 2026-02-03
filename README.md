@@ -1,4 +1,4 @@
-# coders_cup_minigame_frontend
+# CC Minigame Frontend
 
 A new Flutter project.
 
